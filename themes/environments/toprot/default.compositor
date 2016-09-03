@@ -3,6 +3,9 @@ template
         texture = textureTemplate
 material
     main
-        ball
-            diffuse = pipeline/textures/ball_tex.png
-            normal = pipeline/textures/ball_n.png
+        base
+            diffuse = pipeline/textures/base_tex.png
+            normal = pipeline/textures/base_n.png
+        gear
+            diffuse = pipeline/textures/gear_tex.png
+            normal = pipeline/textures/gear_n.png
