@@ -1,0 +1,5 @@
+rotate
+    default
+        rotateGear
+            point = 0 0 0 0
+            point = 60000 0 0 2880

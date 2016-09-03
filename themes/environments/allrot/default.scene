@@ -1,0 +1,35 @@
+
+node
+    default
+        light
+            light = default
+            parent = ROOT
+            position = 0.000000 -10.000000 20.000000
+            script = scripts/Main.py
+        camera
+            parent = ROOT
+            position = -0.563791 -3.668851 5.979855
+            rotation = 32.799618 0.000000 -5.299789
+            script = scripts/CameraSync.py
+        base
+            material = base
+            model = models/base.osgt
+            parent = ROOT
+        pgear
+            parent = base
+            position = 0.000000 1.800000 0.350000
+            rotation = 180.000000 0.000000 0.000000
+        gear
+            material = gear
+            model = models/gear.osgt
+            parent = pgear
+            script = scripts/Gear.py
+        pgear1
+            parent = base
+            position = 0.000000 -1.800000 0.350000
+            rotation = 180.000000 0.000000 0.000000
+        gear1
+            material = gear
+            model = models/gear.osgt
+            parent = pgear1
+            script = scripts/Gear.py
