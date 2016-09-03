@@ -1,0 +1,16 @@
+
+node
+    default
+        light
+            light = default
+            parent = ROOT
+            position = 0.000000 -10.000000 20.000000
+            script = scripts/Main.py
+        camera
+            parent = ROOT
+            position = -0.856744 -2.921093 5.792541
+            rotation = 27.199696 0.000000 -11.899781
+            script = scripts/CameraSync.py
+        base
+            model = models/base.osgt
+            parent = ROOT
