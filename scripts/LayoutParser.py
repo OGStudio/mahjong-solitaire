@@ -15,31 +15,73 @@ class LayoutParserImpl(object):
         self.c = c
     def __del__(self):
         self.c = None
-    def setParseFileName(self, key, value):
-        fileName = value[0]
-        with open(fileName, "r") as f:
-            lns = f.readlines()
+    def parseFieldLines(self, lines, fieldID, width, height):
+        for h in xrange(0, height - 1):
+            for w in xrange(0, width - 1):
+                if ((lines[h][w]         == "1") and
+                    (lines[h][w + 1]     == "2") and
+                    (lines[h + 1][w]     == "4") and
+                    (lines[h + 1][w + 1] == "3")):
+                    # Save tile position.
+                    self.positions.append(str(fieldID))
+                    self.positions.append(str(h))
+                    self.positions.append(str(w))
+    def parseLines(self, lines):
+        # Field default dimensions.
+        width  = 32
+        height = 16
+        depth  = 0
+        # Field buffer.
+        fieldID = 0
+        fieldLineID = 0
+        fieldLines  = []
+        self.positions = []
         # Parse the file.
-        for ln in lns:
+        for ln in lines:
             sln = ln.strip()
-            # Ignore lines starting with "#".
+            # Ignore comments.
             if (ln.startswith("#")):
                 continue
-            # Make sure version is supported.
+            # Format version.
             elif (ln.startswith(LAYOUT_PARSER_PREFIX_VERSION)):
                 version = sln.split(LAYOUT_PARSER_PREFIX_VERSION)[1]
+                # Make sure version is supported.
                 if (version not in LAYOUT_PARSER_VERSIONS):
                     msg = "KMahjongg layout version '{0}' is unsupported".format(version)
                     self.c.set("error.last", msg)
                     # TODO: report unsuccessful parsing to the caller.
                     return
-            # Ignore 1.1 only specifications.
-            elif (ln.startswith(LAYOUT_PARSER_PREFIX_DEPTH) or
-                  ln.startswith(LAYOUT_PARSER_PREFIX_HEIGHT) or
-                  ln.startswith(LAYOUT_PARSER_PREFIX_WIDTH)):
-                continue
+            # 1.1: depth.
+            elif (ln.startswith(LAYOUT_PARSER_PREFIX_DEPTH)):
+                d = sln.split(LAYOUT_PARSER_PREFIX_DEPTH)[1]
+                depth = int(d)
+            # 1.1: height.
+            elif (ln.startswith(LAYOUT_PARSER_PREFIX_HEIGHT)):
+                h = sln.split(LAYOUT_PARSER_PREFIX_HEIGHT)[1]
+                height = int(h)
+            # 1.1: width.
+            elif (ln.startswith(LAYOUT_PARSER_PREFIX_WIDTH)):
+                w = sln.split(LAYOUT_PARSER_PREFIX_WIDTH)[1]
+                width = int(w)
+            # Field line.
             else:
-                print "line", ln
+                # Accumulate lines to have a complete field for current depth.
+                fieldLines.append(sln)
+                fieldLineID = fieldLineID + 1
+                # Process complete field.
+                if (fieldLineID >= height):
+                    self.parseFieldLines(fieldLines, fieldID, width, height)
+                    fieldID = fieldID + 1
+                    # Reset buffer.
+                    fieldLines = []
+                    fieldLineID = 0
+    def setParseFileName(self, key, value):
+        fileName = value[0]
+        with open(fileName, "r") as f:
+            lns = f.readlines()
+        self.parseLines(lns)
+    def tilePositions(self, key):
+        return self.positions
 
 class LayoutParser(object):
     def __init__(self, sceneName, nodeName, env):
@@ -47,7 +89,7 @@ class LayoutParser(object):
         self.impl = LayoutParserImpl(self.c)
         self.c.setConst("SCENE", sceneName)
         self.c.provide("layout.parseFileName", self.impl.setParseFileName)
-        self.c.provide("layout.positions")
+        self.c.provide("layout.positions", None, self.impl.tilePositions)
     def __del__(self):
         # Tear down.
         self.c.clear()

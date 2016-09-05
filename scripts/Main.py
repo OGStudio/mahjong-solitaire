@@ -21,6 +21,7 @@ class MainImpl(object):
         print self.c.get("tileFactory.createTile")
         fileName = self.resolver.resolve(MAIN_LAYOUT_FILE_NAME)
         self.c.set("layout.parseFileName", fileName)
+        print self.c.get("layout.positions")
 
 class MainResolver(object):
     def __init__(self, client):
