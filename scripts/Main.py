@@ -1,7 +1,8 @@
 
 from pymjin2 import *
 
-MAIN_LAYOUT_FILE_NAME = "layouts/X_shaped.layout"
+#MAIN_LAYOUT_FILE_NAME = "layouts/X_shaped.layout"
+MAIN_LAYOUT_FILE_NAME = "layouts/default.layout"
 MAIN_RESOLVER_NAME    = "MahjongResolver"
 
 class MainImpl(object):
