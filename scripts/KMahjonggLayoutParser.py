@@ -6,15 +6,16 @@ class KMahjonggLayoutParserImpl(object):
         self.c = c
     def __del__(self):
         self.c = None
-    def setParse(self, key, value):
-        print "setParse", key, value
+    def setParseFileName(self, key, value):
+        print "setParseFileName", key, value
 
 class KMahjonggLayoutParser(object):
     def __init__(self, sceneName, nodeName, env):
         self.c = EnvironmentClient(env, "KMahjonggLayoutParser")
         self.impl = KMahjonggLayoutParserImpl(self.c)
         self.c.setConst("SCENE", sceneName)
-        self.c.provide("layout.parse", None, self.impl.setParse)
+        self.c.provide("layout.parseFileName", self.impl.setParseFileName)
+        self.c.provide("layout.positions")
     def __del__(self):
         # Tear down.
         self.c.clear()

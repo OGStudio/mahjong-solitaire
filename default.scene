@@ -16,3 +16,4 @@ node
             script = scripts/TileFactory.py
         background
             parent = ROOT
+            script = scripts/KMahjonggLayoutParser.py
