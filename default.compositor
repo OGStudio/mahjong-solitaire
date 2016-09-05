@@ -1,0 +1,8 @@
+template
+    main
+        texture = textureTemplate
+material
+    main
+        tile
+            diffuse = pipeline/textures/tile_d.png
+            normal = pipeline/textures/tile_n.png

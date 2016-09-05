@@ -1,0 +1,18 @@
+
+node
+    default
+        light
+            light = default
+            parent = ROOT
+            position = 0.000000 -10.000000 20.000000
+            script = scripts/Main.py
+        camera
+            parent = ROOT
+            position = -0.101978 -1.039950 0.771993
+            rotation = 55.399708 0.000000 -6.699800
+            script = scripts/CameraSync.py
+        tiles
+            parent = ROOT
+            script = scripts/TileFactory.py
+        background
+            parent = ROOT
