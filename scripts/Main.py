@@ -18,21 +18,24 @@ class MainImpl(object):
         self.started = True
         print "Space pressed. Start the game"
         print self.c.get("tileFactory.createTile")
-        #fileName = self.resolver.resolve(MAIN_LAYOUT_FILE_NAME)
-        #self.c.set("layout.parseFileName", fileName)
+        fileName = self.resolver.resolve(MAIN_LAYOUT_FILE_NAME)
+        self.c.set("layout.parseFileName", fileName)
 
-def MainResolver(object):
+class MainResolver(object):
     def __init__(self, client):
         self.c = client
-#        self.fileNameAbs = None
-#        self.c.setConst("RESOLVER", MAIN_RESOLVER_NAME)
-#        self.c.listen("pathResolver.$RESOLVER.fileNameAbs", None, self.impl.onFileNameAbs)
+        self.fileNameAbs = None
+        self.c.setConst("RESOLVER", MAIN_RESOLVER_NAME)
+        self.c.listen("pathResolver.$RESOLVER.fileNameAbs",
+                      None,
+                      self.onFileNameAbs)
     def __del__(self):
         self.c = None
-#    def onFileNameAbs(self, key, value):
-#        print "onFileNameAbs", key, value
-#    def resolve(self, fileName):
-#        self.c.set("pathResolver.$RESOLVER.resolveFileNameAbs", fileName)
+    def onFileNameAbs(self, key, value):
+        self.fileNameAbs = value[0]
+    def resolve(self, fileName):
+        self.c.set("pathResolver.$RESOLVER.resolveFileNameAbs", fileName)
+        return self.fileNameAbs
 
 class Main(object):
     def __init__(self, sceneName, nodeName, env):
