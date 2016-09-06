@@ -43,6 +43,8 @@ class GameImpl(object):
         fileNameAbs = self.c.get("pathResolver.$RESOLVER.fileNameAbs")[0]
         # Load layout.
         self.loadLayout(fileNameAbs)
+        # Center play field.
+        self.c.set("tileFactory.centerTiles", "1")
 
 class Game(object):
     def __init__(self, sceneName, nodeName, env):

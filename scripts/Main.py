@@ -1,8 +1,8 @@
 
 from pymjin2 import *
 
-#MAIN_LAYOUT_NAME = "X_shaped"
-MAIN_LAYOUT_NAME = "default"
+MAIN_LAYOUT_NAME = "X_shaped"
+#MAIN_LAYOUT_NAME = "default"
 
 class MainImpl(object):
     def __init__(self, c):

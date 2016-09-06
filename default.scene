@@ -8,8 +8,8 @@ node
             script = scripts/Main.py
         camera
             parent = ROOT
-            position = -0.584338 -2.386328 1.093071
-            rotation = 61.099678 0.000000 -23.799778
+            position = 0.013924 -1.480793 1.395200
+            rotation = 44.799641 0.000000 -0.299790
             script = scripts/CameraSync.py
         background
             parent = ROOT
@@ -23,7 +23,9 @@ node
             model = models/selectionbox.osgt
             parent = ROOT
             position = 0.000000 0.000000 -0.500000
-        tiles
+        tilesRotation
             parent = ROOT
             rotation = 0.000000 0.000000 -90.000000
+        tiles
+            parent = tilesRotation
             script = scripts/TileFactory.py

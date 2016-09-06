@@ -5,10 +5,10 @@ TILE_FACTORY_NAME_PREFIX = "tile"
 TILE_FACTORY_MATERIAL    = "tile"
 TILE_FACTORY_MODEL       = "models/tile.osgt"
 
+# FEATURE: Position translation
 class TileFactoryTranslator(object):
     def __init__(self, client):
         self.c = client
-        # X, Y, Z factors.
         self.factors = None
     def __del__(self):
         self.c = None
@@ -17,6 +17,7 @@ class TileFactoryTranslator(object):
             return
         # SCENE and TILE must be set beforehand.
         bbox = self.c.get("node.$SCENE.$TILE.bbox")[0].split(" ")
+        # FEATURE: Position translation
         self.factors = (float(bbox[1]) - float(bbox[0]), # X.
                         float(bbox[3]) - float(bbox[2]), # Y.
                         float(bbox[5]) - float(bbox[4])) # Z.
@@ -35,8 +36,13 @@ class TileFactoryImpl(object):
         self.c = c
         self.parentNode = parentNode
         self.tileID = 0
+        # FEATURE: Position translation
         self.translator = TileFactoryTranslator(c)
+        # FEATURE: Field centering.
+        self.maxX = 0
+        #self.maxY = 0
     def __del__(self):
+        # FEATURE: Position translation
         del self.translator
         self.c = None
     def createTile(self, key):
@@ -49,18 +55,35 @@ class TileFactoryImpl(object):
     def generateTileName(self):
         self.tileID = self.tileID + 1
         return TILE_FACTORY_NAME_PREFIX + str(self.tileID)
+    # FEATURE: Field centering.
+    def setCenterTiles(self, key, value):
+        offset = (self.maxX + self.translator.factors[0]) * -0.5
+        pos = self.c.get("node.$SCENE.$PARENT_NODE.position")[0]
+        v = pos.split(" ")
+        v[0] = str(float(v[0]) + offset)
+        v[1] = str(float(v[1]) + offset)
+        pos = " ".join(v)
+        self.c.set("node.$SCENE.$PARENT_NODE.position", pos)
     def setTilePosition(self, key, value):
         name = key[1]
         self.c.setConst("TILE", name)
+        # FEATURE: Position translation
         # Translate unit position to relative coordinates.
         pos = self.translator.translate(value[0])
         self.c.set("node.$SCENE.$TILE.position", pos)
+        # FEATURE: Field centering.
+        v = pos.split(" ")
+        self.maxX = max(self.maxX, float(v[0]))
+        #self.maxY = max(self.maxY, float(v[1]))
 
 class TileFactory(object):
     def __init__(self, sceneName, nodeName, env):
         self.c = EnvironmentClient(env, "TileFactory")
         self.impl = TileFactoryImpl(self.c, nodeName)
         self.c.setConst("SCENE", sceneName)
+        self.c.setConst("PARENT_NODE", nodeName)
+        # FEATURE: Field centering.
+        self.c.provide("tileFactory.centerTiles", self.impl.setCenterTiles)
         self.c.provide("tileFactory.createTile", None, self.impl.createTile)
         self.c.provide("tile..position", self.impl.setTilePosition)
     def __del__(self):
