@@ -4,6 +4,37 @@ from pymjin2 import *
 TILE_FACTORY_NAME_PREFIX = "tile"
 TILE_FACTORY_MATERIAL    = "tile"
 TILE_FACTORY_MODEL       = "models/tile.osgt"
+# FEATURE: Tile identity.
+TILE_FACTORY_IDS_NB      = 4
+
+# FEATURE: Tile identity.
+class TileFactoryIdentity(object):
+    def __init__(self, client):
+        self.c = client
+        # Tile -> ID.
+        self.ids = {}
+        self.resetAvailableIDs()
+    def __del__(self):
+        self.c = None
+    def allocateID(self, tileName):
+        # Get available ID.
+        print "available", self.availableIDs
+        val = len(self.availableIDs)
+        id = rand() % val
+        # Allocate it.
+        self.ids[tileName] = self.availableIDs[id]
+        print "allocateID", tileName, self.ids[tileName]
+        # Make sure more available IDs exist.
+        del self.availableIDs[id]
+        if (not len(self.availableIDs)):
+            print "reset"
+            self.resetAvailableIDs()
+    def id(self, tileName):
+        return self.ids[tileName]
+    def resetAvailableIDs(self):
+        self.availableIDs = []
+        for i in xrange(0, TILE_FACTORY_IDS_NB):
+            self.availableIDs.append(i)
 
 # FEATURE: Position translation
 class TileFactoryTranslator(object):
@@ -38,19 +69,26 @@ class TileFactoryImpl(object):
         self.tileID = 0
         # FEATURE: Position translation
         self.translator = TileFactoryTranslator(c)
+        # FEATURE: Tile identity.
+        self.identity = TileFactoryIdentity(c)
         # FEATURE: Field centering.
         self.maxX = 0
-        #self.maxY = 0
     def __del__(self):
         # FEATURE: Position translation
         del self.translator
+        # FEATURE: Tile identity.
+        del self.identity
         self.c = None
     def createTile(self, key):
         name = self.generateTileName()
         self.c.setConst("TILE", name)
-        self.c.set("node.$SCENE.$TILE.parent",   self.parentNode)
-        self.c.set("node.$SCENE.$TILE.model",    TILE_FACTORY_MODEL)
-        self.c.set("node.$SCENE.$TILE.material", TILE_FACTORY_MATERIAL)
+        self.c.set("node.$SCENE.$TILE.parent",     self.parentNode)
+        self.c.set("node.$SCENE.$TILE.model",      TILE_FACTORY_MODEL)
+        self.c.set("node.$SCENE.$TILE.material",   TILE_FACTORY_MATERIAL)
+        # FEATURE: Tile selection.
+        self.c.set("node.$SCENE.$TILE.selectable", "1")
+        # FEATURE: Tile identity.
+        self.identity.allocateID(name)
         return [name]
     def generateTileName(self):
         self.tileID = self.tileID + 1
@@ -74,7 +112,9 @@ class TileFactoryImpl(object):
         # FEATURE: Field centering.
         v = pos.split(" ")
         self.maxX = max(self.maxX, float(v[0]))
-        #self.maxY = max(self.maxY, float(v[1]))
+    # FEATURE: Tile identity.
+    def tileID(self, key):
+        return stringToStringList(str(self.identity.id(key[1])))
 
 class TileFactory(object):
     def __init__(self, sceneName, nodeName, env):
@@ -86,6 +126,8 @@ class TileFactory(object):
         self.c.provide("tileFactory.centerTiles", self.impl.setCenterTiles)
         self.c.provide("tileFactory.createTile", None, self.impl.createTile)
         self.c.provide("tile..position", self.impl.setTilePosition)
+        # FEATURE: Tile identity.
+        self.c.provide("tile..id", None, self.impl.tileID)
     def __del__(self):
         # Tear down.
         self.c.clear()
