@@ -14,6 +14,12 @@ class TileFactoryIdentity(object):
         # Tile -> ID.
         self.ids = {}
         self.resetAvailableIDs()
+
+        # TMP.
+        self.tmp = {}
+        for i in xrange(0, TILE_FACTORY_IDS_NB):
+            self.tmp[i] = 0
+
     def __del__(self):
         self.c = None
     def allocateID(self, tileName):
@@ -22,7 +28,12 @@ class TileFactoryIdentity(object):
         val = len(self.availableIDs)
         id = rand() % val
         # Allocate it.
-        self.ids[tileName] = self.availableIDs[id]
+        tileID = self.availableIDs[id]
+        self.ids[tileName] = tileID
+
+        # TMP.
+        self.tmp[tileID] = self.tmp[tileID] + 1
+
         print "allocateID", tileName, self.ids[tileName]
         # Make sure more available IDs exist.
         del self.availableIDs[id]
@@ -102,6 +113,12 @@ class TileFactoryImpl(object):
         v[1] = str(float(v[1]) + offset)
         pos = " ".join(v)
         self.c.set("node.$SCENE.$PARENT_NODE.position", pos)
+
+        # TMP.
+        print "0001"
+        print self.identity.tmp
+        print "0002"
+
     def setTilePosition(self, key, value):
         name = key[1]
         self.c.setConst("TILE", name)
