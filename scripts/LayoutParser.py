@@ -13,8 +13,13 @@ LAYOUT_PARSER_VERSIONS = ["1.0",
 class LayoutParserImpl(object):
     def __init__(self, c):
         self.c = c
+        # FEATURE: error reporting.
+        self.lastError = None
     def __del__(self):
         self.c = None
+    # FEATURE: error reporting.
+    def error(self, key):
+        return ((self.lastError) if self.lastError else ())
     def parseFieldLines(self, lines, fieldID, width, height):
         for h in xrange(0, height - 1):
             for w in xrange(0, width - 1):
@@ -36,6 +41,8 @@ class LayoutParserImpl(object):
         fieldLineID = 0
         fieldLines  = []
         self.positions = []
+        # FEATURE: error reporting.
+        self.lastError = None
         # Parse the file.
         for ln in lines:
             sln = ln.strip()
@@ -47,9 +54,10 @@ class LayoutParserImpl(object):
                 version = sln.split(LAYOUT_PARSER_PREFIX_VERSION)[1]
                 # Make sure version is supported.
                 if (version not in LAYOUT_PARSER_VERSIONS):
-                    msg = "KMahjongg layout version '{0}' is unsupported".format(version)
-                    self.c.set("error.last", msg)
-                    # TODO: report unsuccessful parsing to the caller.
+                    # FEATURE: error reporting.
+                    error = ("KMahjongg layout version '{0}' "
+                             "is unsupported").format(version)
+                    self.reportError(error)
                     return
             # 1.1: depth.
             elif (ln.startswith(LAYOUT_PARSER_PREFIX_DEPTH)):
@@ -75,6 +83,14 @@ class LayoutParserImpl(object):
                     # Reset buffer.
                     fieldLines = []
                     fieldLineID = 0
+        # FEATURE: error reporting.
+        # Make sure number of positions (positions / 3) is even ( positions / 3 / 2).
+        if ((len(self.positions) % 6) != 0):
+            self.reportError("KMahjongg layout has invalid number of tiles")
+    # FEATURE: error reporting.
+    def reportError(self, error):
+        self.lastError = error
+        self.c.set("error.last", error)
     def setParseFileName(self, key, value):
         fileName = value[0]
         with open(fileName, "r") as f:
@@ -88,6 +104,8 @@ class LayoutParser(object):
         self.c = EnvironmentClient(env, "LayoutParser")
         self.impl = LayoutParserImpl(self.c)
         self.c.setConst("SCENE", sceneName)
+        # FEATURE: error reporting.
+        self.c.provide("layout.error", None, self.impl.error)
         self.c.provide("layout.parseFileName", self.impl.setParseFileName)
         self.c.provide("layout.positions", None, self.impl.tilePositions)
     def __del__(self):

@@ -14,10 +14,11 @@ node
         tiles
             parent = ROOT
             script = scripts/TileFactory.py
-        tile1
-            material = tile
-            model = models/tile.osgt
-            parent = tiles
         background
             parent = ROOT
+        game
+            parent = ROOT
+            script = scripts/Game.py
+        layout
+            parent = game
             script = scripts/LayoutParser.py
