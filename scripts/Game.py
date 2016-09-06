@@ -10,27 +10,27 @@ class GameImpl(object):
         self.c = c
     def __del__(self):
         self.c = None
+    def createTile(self, pos):
+        # Create tile.
+        tileName = self.c.get("tileFactory.createTile")[0]
+        # Position it.
+        self.c.setConst("TILE", tileName)
+        val = " ".join(pos)
+        self.c.set("tile.$TILE.position", val)
     def loadLayout(self, fileName):
-        print "loadLayout", fileName
         self.c.set("layout.parseFileName", fileName)
         error = self.c.get("layout.error")
         if (len(error)):
             return
         # Positions are decomposed as (depth1, x1, y1, depth2, x2, y2, ...).
         positions = self.c.get("layout.positions")
-        # Position buffer.
+        # Buffer to recompose positions back.
         pos = []
         for item in positions:
-            pos.append(int(item))
+            pos.append(item)
             # A complete position has been constructed.
             if (len(pos) == 3):
-                # Create tile.
-                tileName = self.c.get("tileFactory.createTile")[0]
-                # Position tile.
-                self.c.setConst("TILE", tileName)
-                val = "{0} {1} {2}".format(pos[1], pos[0], pos[2])
-                self.c.set("node.$SCENE.$TILE.position", val)
-                print "set tile '{0}' to pos '{1}'".format(tileName, pos)
+                self.createTile(pos)
                 # Reset buffer.
                 pos = []
     def setLoadLayout(self, key, value):
