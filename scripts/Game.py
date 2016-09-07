@@ -7,36 +7,10 @@ GAME_LAYOUT_EXT    = "layout"
 # FEATURE: Tile identity.
 GAME_TILE_IDS_NB   = 4
 
-# FEATURE: Tile identity.
-class GameTileIDProvider(object):
-    def __init__(self):
-        self.resetIDs()
-    def id(self):
-        print "available", self.ids
-        # Available ID.
-        val = len(self.ids)
-        i = rand() % val
-        # Allocate it.
-        newID = self.ids[i]
-        del self.ids[i]
-        # Make sure more available IDs exist.
-        if (not len(self.ids)):
-            self.resetIDs()
-        return newID
-    def resetIDs(self):
-        print "reset"
-        self.ids = []
-        for i in xrange(0, GAME_TILE_IDS_NB):
-            self.ids.append(i)
-
 class GameImpl(object):
     def __init__(self, c):
         self.c = c
-        # FEATURE: Tile identity.
-        self.provider = GameTileIDProvider()
     def __del__(self):
-        # FEATURE: Tile identity.
-        del self.provider
         self.c = None
     def composedPositions(self, positions):
         r = []
@@ -60,20 +34,20 @@ class GameImpl(object):
         return tileName
     # FEATURE: Tile identity.
     def generateTileIDs(self, tiles):
-        print "generateTileIDs", tiles
         i = 0
-        id = self.provider.id()
-        print "id", id
-        for tileName in tiles:
-            print "i", i
+        id = 0
+        while (len(tiles)):
+            tileNameID = rand() % len(tiles)
+            tileName = tiles[tileNameID]
+            del tiles[tileNameID]
+            self.c.setConst("TILE", tileName)
+            val = id % GAME_TILE_IDS_NB
+            self.c.set("tile.$TILE.id", str(val))
             # We only change currently assigned ID once in 2 tiles,
             # because number of IDs should be even.
             if (i % 2):
-                id = self.provider.id()
-                print "id", id
+                id = id + 1
             i = i + 1
-            self.c.setConst("TILE", tileName)
-            self.c.set("tile.$TILE.id", str(id))
     def loadLayout(self, fileName):
         self.c.set("layout.parseFileName", fileName)
         error = self.c.get("layout.error")

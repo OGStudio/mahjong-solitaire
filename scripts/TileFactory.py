@@ -4,48 +4,6 @@ from pymjin2 import *
 TILE_FACTORY_NAME_PREFIX = "tile"
 TILE_FACTORY_MATERIAL    = "tile"
 TILE_FACTORY_MODEL       = "models/tile.osgt"
-# FEATURE: Tile identity.
-#TILE_FACTORY_IDS_NB      = 4
-
-# FEATURE: Tile identity.
-#class TileFactoryIdentity(object):
-#    def __init__(self, client):
-#        self.c = client
-#        # Tile -> ID.
-#        self.ids = {}
-#        self.resetAvailableIDs()
-#
-#        # TMP.
-#        self.tmp = {}
-#        for i in xrange(0, TILE_FACTORY_IDS_NB):
-#            self.tmp[i] = 0
-#
-#    def __del__(self):
-#        self.c = None
-#    def allocateID(self, tileName):
-#        # Get available ID.
-#        print "available", self.availableIDs
-#        val = len(self.availableIDs)
-#        id = rand() % val
-#        # Allocate it.
-#        tileID = self.availableIDs[id]
-#        self.ids[tileName] = tileID
-#
-#        # TMP.
-#        self.tmp[tileID] = self.tmp[tileID] + 1
-#
-#        print "allocateID", tileName, self.ids[tileName]
-#        # Make sure more available IDs exist.
-#        del self.availableIDs[id]
-#        if (not len(self.availableIDs)):
-#            print "reset"
-#            self.resetAvailableIDs()
-#    def id(self, tileName):
-#        return self.ids[tileName]
-#    def resetAvailableIDs(self):
-#        self.availableIDs = []
-#        for i in xrange(0, TILE_FACTORY_IDS_NB):
-#            self.availableIDs.append(i)
 
 # FEATURE: Position translation
 class TileFactoryTranslator(object):
@@ -59,7 +17,6 @@ class TileFactoryTranslator(object):
             return
         # SCENE and TILE must be set beforehand.
         bbox = self.c.get("node.$SCENE.$TILE.bbox")[0].split(" ")
-        # FEATURE: Position translation
         self.factors = (float(bbox[1]) - float(bbox[0]), # X.
                         float(bbox[3]) - float(bbox[2]), # Y.
                         float(bbox[5]) - float(bbox[4])) # Z.
