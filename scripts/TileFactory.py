@@ -4,6 +4,7 @@ from pymjin2 import *
 TILE_FACTORY_NAME_PREFIX = "tile"
 TILE_FACTORY_MATERIAL    = "tile"
 TILE_FACTORY_MODEL       = "models/tile.osgt"
+TILE_FACTORY_ID_MATERIAL = "tile0"
 
 # FEATURE: Position translation
 class TileFactoryTranslator(object):
@@ -85,6 +86,9 @@ class TileFactoryImpl(object):
         tileName = key[1]
         id = int(value[0])
         self.ids[tileName] = id
+        self.c.setConst("TILE", tileName)
+        val = TILE_FACTORY_ID_MATERIAL + str(id)
+        self.c.set("node.$SCENE.$TILE.material", val)
 
 class TileFactory(object):
     def __init__(self, sceneName, nodeName, env):

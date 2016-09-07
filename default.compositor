@@ -4,5 +4,17 @@ template
 material
     main
         tile
-            diffuse = pipeline/textures/tile_d.png
+            diffuse = pipeline/textures/tile.png
+            normal = pipeline/textures/tile_n.png
+        tile00
+            diffuse = pipeline/textures/tile00.png
+            normal = pipeline/textures/tile_n.png
+        tile01
+            diffuse = pipeline/textures/tile01.png
+            normal = pipeline/textures/tile_n.png
+        tile02
+            diffuse = pipeline/textures/tile02.png
+            normal = pipeline/textures/tile_n.png
+        tile03
+            diffuse = pipeline/textures/tile03.png
             normal = pipeline/textures/tile_n.png
