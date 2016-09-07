@@ -5,7 +5,7 @@ TILE_FACTORY_NAME_PREFIX = "tile"
 TILE_FACTORY_MATERIAL    = "tile"
 TILE_FACTORY_MODEL       = "models/tile.osgt"
 # FEATURE: Tile identity.
-TILE_FACTORY_IDS_NB      = 4
+#TILE_FACTORY_IDS_NB      = 4
 
 # FEATURE: Tile identity.
 #class TileFactoryIdentity(object):
