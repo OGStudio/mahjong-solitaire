@@ -10,6 +10,18 @@ class GameImpl(object):
         self.c = c
     def __del__(self):
         self.c = None
+    def composedPositions(self, positions):
+        r = []
+        # Buffer.
+        pos = []
+        for item in positions:
+            pos.append(item)
+            # A complete position has been constructed.
+            if (len(pos) == 3):
+                r.append(pos)
+                # Reset buffer.
+                pos = []
+        return r
     def createTile(self, pos):
         # Create tile.
         tileName = self.c.get("tileFactory.createTile")[0]
@@ -23,16 +35,14 @@ class GameImpl(object):
         if (len(error)):
             return
         # Positions are decomposed as (depth1, x1, y1, depth2, x2, y2, ...).
-        positions = self.c.get("layout.positions")
-        # Buffer to recompose positions back.
-        pos = []
-        for item in positions:
-            pos.append(item)
-            # A complete position has been constructed.
-            if (len(pos) == 3):
-                self.createTile(pos)
-                # Reset buffer.
-                pos = []
+        rawPositions = self.c.get("layout.positions")
+        # Recompose them back.
+        positions = self.composedPositions(rawPositions)
+        # Create tiles.
+        for pos in positions:
+            self.createTile(pos)
+        # FEATURE: Field centering.
+        self.c.set("tileFactory.centerTiles", "1")
     def setLoadLayout(self, key, value):
         fileName = "{0}/{1}.{2}".format(GAME_LAYOUT_DIR,
                                         value[0],
@@ -43,8 +53,6 @@ class GameImpl(object):
         fileNameAbs = self.c.get("pathResolver.$RESOLVER.fileNameAbs")[0]
         # Load layout.
         self.loadLayout(fileNameAbs)
-        # Center play field.
-        self.c.set("tileFactory.centerTiles", "1")
 
 class Game(object):
     def __init__(self, sceneName, nodeName, env):
