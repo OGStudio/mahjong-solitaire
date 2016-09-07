@@ -54,10 +54,13 @@ class TileFactoryImpl(object):
         self.c.set("node.$SCENE.$TILE.material",   TILE_FACTORY_MATERIAL)
         # FEATURE: Tile selection.
         self.c.set("node.$SCENE.$TILE.selectable", "1")
+        self.c.listen("node.$SCENE.$TILE.selected", "1", self.onTileSelection)
         return [name]
     def generateTileName(self):
         self.tileID = self.tileID + 1
         return TILE_FACTORY_NAME_PREFIX + str(self.tileID)
+    def onTileSelection(self, key, value):
+        print "onTileSelection", key, value
     # FEATURE: Field centering.
     def setCenterTiles(self, key, value):
         offset = (self.maxX + self.translator.factors[0]) * -0.5
