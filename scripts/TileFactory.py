@@ -8,44 +8,44 @@ TILE_FACTORY_MODEL       = "models/tile.osgt"
 TILE_FACTORY_IDS_NB      = 4
 
 # FEATURE: Tile identity.
-class TileFactoryIdentity(object):
-    def __init__(self, client):
-        self.c = client
-        # Tile -> ID.
-        self.ids = {}
-        self.resetAvailableIDs()
-
-        # TMP.
-        self.tmp = {}
-        for i in xrange(0, TILE_FACTORY_IDS_NB):
-            self.tmp[i] = 0
-
-    def __del__(self):
-        self.c = None
-    def allocateID(self, tileName):
-        # Get available ID.
-        print "available", self.availableIDs
-        val = len(self.availableIDs)
-        id = rand() % val
-        # Allocate it.
-        tileID = self.availableIDs[id]
-        self.ids[tileName] = tileID
-
-        # TMP.
-        self.tmp[tileID] = self.tmp[tileID] + 1
-
-        print "allocateID", tileName, self.ids[tileName]
-        # Make sure more available IDs exist.
-        del self.availableIDs[id]
-        if (not len(self.availableIDs)):
-            print "reset"
-            self.resetAvailableIDs()
-    def id(self, tileName):
-        return self.ids[tileName]
-    def resetAvailableIDs(self):
-        self.availableIDs = []
-        for i in xrange(0, TILE_FACTORY_IDS_NB):
-            self.availableIDs.append(i)
+#class TileFactoryIdentity(object):
+#    def __init__(self, client):
+#        self.c = client
+#        # Tile -> ID.
+#        self.ids = {}
+#        self.resetAvailableIDs()
+#
+#        # TMP.
+#        self.tmp = {}
+#        for i in xrange(0, TILE_FACTORY_IDS_NB):
+#            self.tmp[i] = 0
+#
+#    def __del__(self):
+#        self.c = None
+#    def allocateID(self, tileName):
+#        # Get available ID.
+#        print "available", self.availableIDs
+#        val = len(self.availableIDs)
+#        id = rand() % val
+#        # Allocate it.
+#        tileID = self.availableIDs[id]
+#        self.ids[tileName] = tileID
+#
+#        # TMP.
+#        self.tmp[tileID] = self.tmp[tileID] + 1
+#
+#        print "allocateID", tileName, self.ids[tileName]
+#        # Make sure more available IDs exist.
+#        del self.availableIDs[id]
+#        if (not len(self.availableIDs)):
+#            print "reset"
+#            self.resetAvailableIDs()
+#    def id(self, tileName):
+#        return self.ids[tileName]
+#    def resetAvailableIDs(self):
+#        self.availableIDs = []
+#        for i in xrange(0, TILE_FACTORY_IDS_NB):
+#            self.availableIDs.append(i)
 
 # FEATURE: Position translation
 class TileFactoryTranslator(object):
@@ -81,14 +81,12 @@ class TileFactoryImpl(object):
         # FEATURE: Position translation
         self.translator = TileFactoryTranslator(c)
         # FEATURE: Tile identity.
-        self.identity = TileFactoryIdentity(c)
+        self.ids = {}
         # FEATURE: Field centering.
         self.maxX = 0
     def __del__(self):
         # FEATURE: Position translation
         del self.translator
-        # FEATURE: Tile identity.
-        del self.identity
         self.c = None
     def createTile(self, key):
         name = self.generateTileName()
@@ -98,8 +96,6 @@ class TileFactoryImpl(object):
         self.c.set("node.$SCENE.$TILE.material",   TILE_FACTORY_MATERIAL)
         # FEATURE: Tile selection.
         self.c.set("node.$SCENE.$TILE.selectable", "1")
-        # FEATURE: Tile identity.
-        self.identity.allocateID(name)
         return [name]
     def generateTileName(self):
         self.tileID = self.tileID + 1
@@ -113,12 +109,6 @@ class TileFactoryImpl(object):
         v[1] = str(float(v[1]) + offset)
         pos = " ".join(v)
         self.c.set("node.$SCENE.$PARENT_NODE.position", pos)
-
-        # TMP.
-        print "0001"
-        print self.identity.tmp
-        print "0002"
-
     def setTilePosition(self, key, value):
         name = key[1]
         self.c.setConst("TILE", name)
@@ -131,7 +121,13 @@ class TileFactoryImpl(object):
         self.maxX = max(self.maxX, float(v[0]))
     # FEATURE: Tile identity.
     def tileID(self, key):
-        return stringToStringList(str(self.identity.id(key[1])))
+        tileName = key[1]
+        return stringToStringList(str(self.ids[tileName]))
+    # FEATURE: Tile identity.
+    def setTileID(self, key, value):
+        tileName = key[1]
+        id = int(value[0])
+        self.ids[tileName] = id
 
 class TileFactory(object):
     def __init__(self, sceneName, nodeName, env):
@@ -144,7 +140,7 @@ class TileFactory(object):
         self.c.provide("tileFactory.createTile", None, self.impl.createTile)
         self.c.provide("tile..position", self.impl.setTilePosition)
         # FEATURE: Tile identity.
-        self.c.provide("tile..id", None, self.impl.tileID)
+        self.c.provide("tile..id", self.impl.setTileID, self.impl.tileID)
     def __del__(self):
         # Tear down.
         self.c.clear()
