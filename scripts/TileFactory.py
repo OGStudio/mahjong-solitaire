@@ -6,6 +6,65 @@ TILE_FACTORY_MATERIAL    = "tile"
 TILE_FACTORY_MODEL       = "models/tile.osgt"
 TILE_FACTORY_ID_MATERIAL = "tile0"
 
+# FEATURE: Tile selection.
+class TileFactoryMahjong(object):
+    def __init__(self, client):
+        self.c = client
+        self.c.listen("tile..position", None, self.onPosition)
+        self.c.provide("tile..selectable", None, self.selectable)
+        # Position -> Tile.
+        self.positions = {}
+        # Tile -> Position.
+        self.tiles = {}
+    def __del__(self):
+        self.c = None
+    def onPosition(self, key, value):
+        tileName = key[1]
+        pos = value[0]
+        self.positions[pos] = tileName
+        self.tiles[tileName] = pos
+    def selectable(self, key):
+        tileName = key[1]
+        # TODO: check left, right, top.
+        pos = self.tiles[tileName]
+        vpos = pos.split(" ")
+        # Check if tile has a neighbour directly to the left
+        #   ----- ----- 
+        #   |   | |   | 
+        #   | L | |(X)| 
+        #   |   | |   | 
+        #   ----- ----- 
+        columnLeft = int(vpos[2]) - 2
+        posDirectly = "{0} {1} {2}".format(vpos[0], vpos[1], columnLeft)
+        # Check if tile has a neighbour in the upper row to the left
+        #   -----  
+        #   |   |  
+        #   | L | ----- 
+        #   |   | |   | 
+        #   ----- |(X)| 
+        #         |   |
+        #         -----
+        rowUp = int(vpos[1]) - 1
+        posUpper = "{0} {1} {2}".format(vpos[0], rowUp, columnLeft)
+        # Check if tile has a neighbour in the lower row to the left
+        #        ----- 
+        #        |   |
+        #   -----|(X)|  
+        #   |   ||   |  
+        #   | L |-----  
+        #   |   |  
+        #   -----  
+        rowDown = int(vpos[1]) + 1
+        posLower = "{0} {1} {2}".format(vpos[0], rowDown, columnLeft)
+        print "pos", pos
+        print "directly", posDirectly, "upper", posUpper, "lower", posLower
+        if ((posDirectly in self.positions) or
+            (posUpper    in self.positions) or
+            (posLower    in self.positions)):
+            print "tile to the LEFT"
+
+        return ["1"]
+
 # FEATURE: Position translation
 class TileFactoryTranslator(object):
     def __init__(self, client):
@@ -61,6 +120,9 @@ class TileFactoryImpl(object):
         return TILE_FACTORY_NAME_PREFIX + str(self.tileID)
     def onTileSelection(self, key, value):
         print "onTileSelection", key, value
+        tileName = key[2]
+        self.c.setConst("TILE", tileName)
+        print "tile is selectable", self.c.get("tile.$TILE.selectable")
     # FEATURE: Field centering.
     def setCenterTiles(self, key, value):
         offset = (self.maxX + self.translator.factors[0]) * -0.5
@@ -97,6 +159,8 @@ class TileFactory(object):
     def __init__(self, sceneName, nodeName, env):
         self.c = EnvironmentClient(env, "TileFactory")
         self.impl = TileFactoryImpl(self.c, nodeName)
+        # FEATURE: Tile selection.
+        self.mahjong = TileFactoryMahjong(self.c)
         self.c.setConst("SCENE", sceneName)
         self.c.setConst("PARENT_NODE", nodeName)
         # FEATURE: Field centering.
@@ -109,6 +173,8 @@ class TileFactory(object):
         # Tear down.
         self.c.clear()
         # Destroy.
+        # FEATURE: Tile selection.
+        del self.mahjong
         del self.impl
         del self.c
 
