@@ -18,6 +18,45 @@ class TileFactoryMahjong(object):
         self.tiles = {}
     def __del__(self):
         self.c = None
+    def hasLeftRightNeighbour(self, pos, left):
+        # Left.
+        column = pos[2] - 2
+        # We use 2, because each tile takes 2 columns in width.
+        # Right.
+        if (not left):
+            column = pos[2] + 2
+        # Neighbour directly to the left/right
+        #   ----- -----      ----- ----- 
+        #   |   | |   |      |   | |   | 
+        #   | L | |(X)|  or  |(X)| | R |  
+        #   |   | |   |      |   | |   | 
+        #   ----- -----      ----- ----- 
+        posDirectly = "{0} {1} {2}".format(pos[0], pos[1], column)
+        # Neighbour in the upper row to the left/right
+        #   -----                  -----
+        #   |   |                  |   |
+        #   | L | -----      ----- | R |
+        #   |   | |   |      |   | |   |
+        #   ----- |(X)|  or  |(X)| -----
+        #         |   |      |   |
+        #         -----      -----
+        rowUp = pos[1] - 1
+        posUpper = "{0} {1} {2}".format(pos[0], rowUp, column)
+        # Neighbour in the lower row to the left/right
+        #         -----      -----
+        #         |   |      |   |
+        #   ----- |(X)|  or  |(X)| -----
+        #   |   | |   |      |   | |   |
+        #   | L | -----      ----- | R |
+        #   |   |                  |   |
+        #   -----                  -----
+        rowDown = pos[1] + 1
+        posLower = "{0} {1} {2}".format(pos[0], rowDown, column)
+        if ((posDirectly in self.positions) or
+            (posUpper    in self.positions) or
+            (posLower    in self.positions)):
+            return True
+        return False
     def onPosition(self, key, value):
         tileName = key[1]
         pos = value[0]
@@ -25,44 +64,17 @@ class TileFactoryMahjong(object):
         self.tiles[tileName] = pos
     def selectable(self, key):
         tileName = key[1]
-        # TODO: check left, right, top.
         pos = self.tiles[tileName]
         vpos = pos.split(" ")
-        # Check if tile has a neighbour directly to the left
-        #   ----- ----- 
-        #   |   | |   | 
-        #   | L | |(X)| 
-        #   |   | |   | 
-        #   ----- ----- 
-        columnLeft = int(vpos[2]) - 2
-        posDirectly = "{0} {1} {2}".format(vpos[0], vpos[1], columnLeft)
-        # Check if tile has a neighbour in the upper row to the left
-        #   -----  
-        #   |   |  
-        #   | L | ----- 
-        #   |   | |   | 
-        #   ----- |(X)| 
-        #         |   |
-        #         -----
-        rowUp = int(vpos[1]) - 1
-        posUpper = "{0} {1} {2}".format(vpos[0], rowUp, columnLeft)
-        # Check if tile has a neighbour in the lower row to the left
-        #        ----- 
-        #        |   |
-        #   -----|(X)|  
-        #   |   ||   |  
-        #   | L |-----  
-        #   |   |  
-        #   -----  
-        rowDown = int(vpos[1]) + 1
-        posLower = "{0} {1} {2}".format(vpos[0], rowDown, columnLeft)
-        print "pos", pos
-        print "directly", posDirectly, "upper", posUpper, "lower", posLower
-        if ((posDirectly in self.positions) or
-            (posUpper    in self.positions) or
-            (posLower    in self.positions)):
-            print "tile to the LEFT"
-
+        ipos = []
+        for item in vpos:
+            ipos.append(int(item))
+        # Tile is unselectable, if it has neighbours at both sides at once.
+        if (self.hasLeftRightNeighbour(ipos, True) and
+            self.hasLeftRightNeighbour(ipos, False)):
+            return ["0"]
+        # TODO:
+        # Tile is unselectable, if it has neighbour at the top.
         return ["1"]
 
 # FEATURE: Position translation
