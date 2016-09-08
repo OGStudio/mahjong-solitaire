@@ -57,6 +57,41 @@ class TileFactoryMahjong(object):
             (posLower    in self.positions)):
             return True
         return False
+    def hasTopNeighbour(self, pos, columnOffset):
+        column = pos[2] + columnOffset
+        depth = pos[0] + 1
+        # Top neighbour in the same row.
+        #   --------      -----      -------- 
+        #   |   |  |      |   |      |  |   | 
+        #   | L |X)|  or  | C |  or  |(X| R |  
+        #   |   |  |      |   |      |  |   | 
+        #   --------      -----      -------- 
+        posDirectly = "{0} {1} {2}".format(depth, pos[1], column)
+        # Top neighbour in the upper row.
+        #   -----         -----         -----
+        #   |   |         |   |         |   |
+        #   | L |---      | C |      ---| R |
+        #   |   |  |      |   |      |  |   |
+        #   -----X)|  or  -----  or  |(X-----
+        #      |   |      |   |      |   |
+        #      -----      -----      -----
+        rowUp = pos[1] - 1
+        posUpper = "{0} {1} {2}".format(depth, rowUp, column)
+        # Top neighbour in the lower row.
+        #      -----      -----      -----
+        #      |   |      |   |      |   |
+        #   -----X)|  or  -----  or  |(X-----
+        #   |   |  |      |   |      |  |   |
+        #   | L |---      | C |      ---| R |
+        #   |   |         |   |         |   |
+        #   -----         -----         -----
+        rowDown = pos[1] + 1
+        posLower = "{0} {1} {2}".format(depth, rowDown, column)
+        if ((posDirectly in self.positions) or
+            (posUpper    in self.positions) or
+            (posLower    in self.positions)):
+            return True
+        return False
     def onPosition(self, key, value):
         tileName = key[1]
         pos = value[0]
@@ -72,9 +107,15 @@ class TileFactoryMahjong(object):
         # Tile is unselectable, if it has neighbours at both sides at once.
         if (self.hasLeftRightNeighbour(ipos, True) and
             self.hasLeftRightNeighbour(ipos, False)):
+            print "SIDES"
             return ["0"]
-        # TODO:
         # Tile is unselectable, if it has neighbour at the top.
+        if (self.hasTopNeighbour(ipos, -1) or
+            self.hasTopNeighbour(ipos, 0) or
+            self.hasTopNeighbour(ipos, 1)):
+            print "TOP"
+            return ["0"]
+        # It's free otherwise.
         return ["1"]
 
 # FEATURE: Position translation
