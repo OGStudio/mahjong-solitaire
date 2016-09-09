@@ -7,6 +7,8 @@ TILE_FACTORY_MODEL           = "models/tile.osgt"
 TILE_FACTORY_ID_MATERIAL     = "tile0"
 # FEATURE: Tile selection depiction.
 TILE_FACTORY_ID_MATERIAL_SEL = "tile0{0}_selected"
+# FEATURE: Tile selection index depiction.
+TILE_FACTORY_ID_MATERIAL_BLK = "tile0{0}_unavailable"
 
 # FEATURE: Tile selection depiction.
 class TileFactorySelectionDepiction(object):
@@ -16,12 +18,14 @@ class TileFactorySelectionDepiction(object):
         self.lastSelectedTile = None
     def __del__(self):
         self.c = None
-    def markSelected(self, tileName, state):
-        self.c.setConst("TILE", tileName)
+    def currentTileID(self):
         # Get ID from current material name.
         mat = self.c.get("node.$SCENE.$TILE.material")[0]
         sid = mat.split(TILE_FACTORY_ID_MATERIAL)[1]
-        id = int(sid[0])
+        return int(sid[0])
+    def markSelected(self, tileName, state):
+        self.c.setConst("TILE", tileName)
+        id = self.currentTileID()
         # Assign new material.
         mat = TILE_FACTORY_ID_MATERIAL + str(id)
         if (state):
@@ -36,21 +40,44 @@ class TileFactorySelectionDepiction(object):
         # Select new tile.
         self.lastSelectedTile = tileName
         self.markSelected(tileName, True)
-        self.c.setConst("TILE", tileName)
-        print "selectable:", self.c.get("tile.$TILE.selectable")[0]
 
 # FEATURE: Tile selection.
 class TileFactorySelection(object):
     def __init__(self, client):
         self.c = client
         self.c.listen("tile..position", None, self.onPosition)
-        self.c.provide("tile..selectable", None, self.selectable)
+        # FEATURE: Tile selection index.
+        self.c.provide("tileFactory.indexTiles", self.setIndexTiles)
         # Position -> Tile.
         self.positions = {}
         # Tile -> Position.
         self.tiles = {}
     def __del__(self):
         self.c = None
+    # WARNING: Duplicates TileFactorySelectionDepiction.
+    # TODO: Get rid of it.
+    def currentTileID(self):
+        # Get ID from current material name.
+        mat = self.c.get("node.$SCENE.$TILE.material")[0]
+        sid = mat.split(TILE_FACTORY_ID_MATERIAL)[1]
+        return int(sid[0])
+    def free(self, tileName):
+        pos = self.tiles[tileName]
+        vpos = pos.split(" ")
+        ipos = []
+        for item in vpos:
+            ipos.append(int(item))
+        # Tile is not free, if it has neighbours at both sides at once.
+        if (self.hasNeighbour(ipos, 0, -2) and
+            self.hasNeighbour(ipos, 0, 2)):
+            return False
+        # Tile is not free, if it has at least one neighbour at the top.
+        if (self.hasNeighbour(ipos, 1, -1) or
+            self.hasNeighbour(ipos, 1, 0) or
+            self.hasNeighbour(ipos, 1, 1)):
+            return False
+        # It's free otherwise.
+        return True
     def hasNeighbour(self, pos, depthOffset, columnOffset):
         depth = pos[0] + depthOffset
         column = pos[2] + columnOffset
@@ -116,24 +143,27 @@ class TileFactorySelection(object):
         pos = value[0]
         self.positions[pos] = tileName
         self.tiles[tileName] = pos
-    def selectable(self, key):
-        tileName = key[1]
-        pos = self.tiles[tileName]
-        vpos = pos.split(" ")
-        ipos = []
-        for item in vpos:
-            ipos.append(int(item))
-        # Tile is unselectable, if it has neighbours at both sides at once.
-        if (self.hasNeighbour(ipos, 0, -2) and
-            self.hasNeighbour(ipos, 0, 2)):
-            return ["0"]
-        # Tile is unselectable, if it has at least one neighbour at the top.
-        if (self.hasNeighbour(ipos, 1, -1) or
-            self.hasNeighbour(ipos, 1, 0) or
-            self.hasNeighbour(ipos, 1, 1)):
-            return ["0"]
-        # It's free otherwise.
-        return ["1"]
+    # FEATURE: Tile selection index.
+    def setIndexTiles(self, key, value):
+        print "setIndexTiles", key, value
+        # Index all tiles.
+        if (value[0] == ""):
+            for tileName in self.tiles:
+                state = self.free(tileName)
+                val = "1" if state else "0"
+                self.c.setConst("TILE", tileName)
+                self.c.set("node.$SCENE.$TILE.selectable", val)
+                # FEATURE: Tile selection index depiction.
+                id = self.currentTileID()
+                mat = TILE_FACTORY_ID_MATERIAL + str(id)
+                if (not state):
+                    mat = TILE_FACTORY_ID_MATERIAL_BLK.format(id)
+                self.c.set("node.$SCENE.$TILE.material", mat)
+        # Index specific tiles.
+        else:
+            #tileNames = value
+            print "TODO index specific tiles"
+        #self.c.set("node.$SCENE.$TILE.selectable", "1")
 
 # FEATURE: Position translation
 class TileFactoryTranslator(object):
@@ -181,8 +211,6 @@ class TileFactoryImpl(object):
         self.c.set("node.$SCENE.$TILE.parent",     self.parentNode)
         self.c.set("node.$SCENE.$TILE.model",      TILE_FACTORY_MODEL)
         self.c.set("node.$SCENE.$TILE.material",   TILE_FACTORY_MATERIAL)
-        # FEATURE: Tile selection.
-        self.c.set("node.$SCENE.$TILE.selectable", "1")
         return [name]
     def generateTileName(self):
         self.tileID = self.tileID + 1

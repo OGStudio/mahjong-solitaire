@@ -65,6 +65,9 @@ class GameImpl(object):
         self.c.set("tileFactory.centerTiles", "1")
         # FEATURE: Tile identity.
         self.generateTileIDs(tiles)
+        # Index all tiles to have up-to-date 'selectable' property.
+        # FEATURE: Tile selection index.
+        self.c.set("tileFactory.indexTiles", "")
     def setLoadLayout(self, key, value):
         fileName = "{0}/{1}.{2}".format(GAME_LAYOUT_DIR,
                                         value[0],
