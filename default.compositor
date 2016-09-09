@@ -30,3 +30,15 @@ material
         tile03_selected
             diffuse = pipeline/textures/tile03_selected.png
             normal = pipeline/textures/tile_n.png
+        tile00_unavailable
+            diffuse = pipeline/textures/tile00_unavailable.png
+            normal = pipeline/textures/tile_n.png
+        tile01_unavailable
+            diffuse = pipeline/textures/tile01_unavailable.png
+            normal = pipeline/textures/tile_n.png
+        tile02_unavailable
+            diffuse = pipeline/textures/tile02_unavailable.png
+            normal = pipeline/textures/tile_n.png
+        tile03_unavailable
+            diffuse = pipeline/textures/tile03_unavailable.png
+            normal = pipeline/textures/tile_n.png
