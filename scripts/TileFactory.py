@@ -1,13 +1,46 @@
 
 from pymjin2 import *
 
-TILE_FACTORY_NAME_PREFIX = "tile"
-TILE_FACTORY_MATERIAL    = "tile"
-TILE_FACTORY_MODEL       = "models/tile.osgt"
-TILE_FACTORY_ID_MATERIAL = "tile0"
+TILE_FACTORY_NAME_PREFIX     = "tile"
+TILE_FACTORY_MATERIAL        = "tile"
+TILE_FACTORY_MODEL           = "models/tile.osgt"
+TILE_FACTORY_ID_MATERIAL     = "tile0"
+# FEATURE: Tile selection depiction.
+TILE_FACTORY_ID_MATERIAL_SEL = "tile0{0}_selected"
+
+# FEATURE: Tile selection depiction.
+class TileFactorySelectionDepiction(object):
+    def __init__(self, client):
+        self.c = client
+        self.c.listen("node...selected", "1", self.onSelection)
+        self.lastSelectedTile = None
+    def __del__(self):
+        self.c = None
+    def markSelected(self, tileName, state):
+        self.c.setConst("TILE", tileName)
+        # Get ID from current material name.
+        mat = self.c.get("node.$SCENE.$TILE.material")[0]
+        sid = mat.split(TILE_FACTORY_ID_MATERIAL)[1]
+        id = int(sid[0])
+        # Assign new material.
+        mat = TILE_FACTORY_ID_MATERIAL + str(id)
+        if (state):
+            mat = TILE_FACTORY_ID_MATERIAL_SEL.format(id)
+        self.c.set("node.$SCENE.$TILE.material", mat)
+    def onSelection(self, key, value):
+        print "onSelection", key, value
+        tileName = key[2]
+        # Deselect previous tile.
+        if (self.lastSelectedTile):
+            self.markSelected(self.lastSelectedTile, False)
+        # Select new tile.
+        self.lastSelectedTile = tileName
+        self.markSelected(tileName, True)
+        self.c.setConst("TILE", tileName)
+        print "selectable:", self.c.get("tile.$TILE.selectable")[0]
 
 # FEATURE: Tile selection.
-class TileFactoryMahjong(object):
+class TileFactorySelection(object):
     def __init__(self, client):
         self.c = client
         self.c.listen("tile..position", None, self.onPosition)
@@ -150,16 +183,10 @@ class TileFactoryImpl(object):
         self.c.set("node.$SCENE.$TILE.material",   TILE_FACTORY_MATERIAL)
         # FEATURE: Tile selection.
         self.c.set("node.$SCENE.$TILE.selectable", "1")
-        self.c.listen("node.$SCENE.$TILE.selected", "1", self.onTileSelection)
         return [name]
     def generateTileName(self):
         self.tileID = self.tileID + 1
         return TILE_FACTORY_NAME_PREFIX + str(self.tileID)
-    def onTileSelection(self, key, value):
-        print "onTileSelection", key, value
-        tileName = key[2]
-        self.c.setConst("TILE", tileName)
-        print "tile is selectable", self.c.get("tile.$TILE.selectable")
     # FEATURE: Field centering.
     def setCenterTiles(self, key, value):
         offset = (self.maxX + self.translator.factors[0]) * -0.5
@@ -197,7 +224,9 @@ class TileFactory(object):
         self.c = EnvironmentClient(env, "TileFactory")
         self.impl = TileFactoryImpl(self.c, nodeName)
         # FEATURE: Tile selection.
-        self.mahjong = TileFactoryMahjong(self.c)
+        self.selection = TileFactorySelection(self.c)
+        # FEATURE: Tile selection depiction.
+        self.selectionDepiction = TileFactorySelectionDepiction(self.c)
         self.c.setConst("SCENE", sceneName)
         self.c.setConst("PARENT_NODE", nodeName)
         # FEATURE: Field centering.
@@ -211,7 +240,9 @@ class TileFactory(object):
         self.c.clear()
         # Destroy.
         # FEATURE: Tile selection.
-        del self.mahjong
+        del self.selection
+        # FEATURE: Tile selection depiction.
+        del self.selectionDepiction
         del self.impl
         del self.c
 
