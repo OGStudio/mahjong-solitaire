@@ -18,56 +18,25 @@ class TileFactoryMahjong(object):
         self.tiles = {}
     def __del__(self):
         self.c = None
-    def hasLeftRightNeighbour(self, pos, left):
-        # Left.
-        column = pos[2] - 2
-        # We use 2, because each tile takes 2 columns in width.
-        # Right.
-        if (not left):
-            column = pos[2] + 2
-        # Neighbour directly to the left/right
-        #   ----- -----      ----- ----- 
-        #   |   | |   |      |   | |   | 
-        #   | L | |(X)|  or  |(X)| | R |  
-        #   |   | |   |      |   | |   | 
-        #   ----- -----      ----- ----- 
-        posDirectly = "{0} {1} {2}".format(pos[0], pos[1], column)
-        # Neighbour in the upper row to the left/right
-        #   -----                  -----
-        #   |   |                  |   |
-        #   | L | -----      ----- | R |
-        #   |   | |   |      |   | |   |
-        #   ----- |(X)|  or  |(X)| -----
-        #         |   |      |   |
-        #         -----      -----
-        rowUp = pos[1] - 1
-        posUpper = "{0} {1} {2}".format(pos[0], rowUp, column)
-        # Neighbour in the lower row to the left/right
-        #         -----      -----
-        #         |   |      |   |
-        #   ----- |(X)|  or  |(X)| -----
-        #   |   | |   |      |   | |   |
-        #   | L | -----      ----- | R |
-        #   |   |                  |   |
-        #   -----                  -----
-        rowDown = pos[1] + 1
-        posLower = "{0} {1} {2}".format(pos[0], rowDown, column)
-        if ((posDirectly in self.positions) or
-            (posUpper    in self.positions) or
-            (posLower    in self.positions)):
-            return True
-        return False
-    def hasTopNeighbour(self, pos, columnOffset):
+    def hasNeighbour(self, pos, depthOffset, columnOffset):
+        depth = pos[0] + depthOffset
         column = pos[2] + columnOffset
-        depth = pos[0] + 1
-        # Top neighbour in the same row.
+        # Same row neighbour.
+        # Top neighbours' depiction:
         #   --------      -----      -------- 
         #   |   |  |      |   |      |  |   | 
         #   | L |X)|  or  | C |  or  |(X| R |  
         #   |   |  |      |   |      |  |   | 
         #   --------      -----      -------- 
+        # Side neighbours' depiction:
+        #   ----- -----      ----- ----- 
+        #   |   | |   |      |   | |   | 
+        #   | L | |(X)|  or  |(X)| | R |  
+        #   |   | |   |      |   | |   | 
+        #   ----- -----      ----- ----- 
         posDirectly = "{0} {1} {2}".format(depth, pos[1], column)
-        # Top neighbour in the upper row.
+        # Upper row neighbour.
+        # Top neighbours' depiction:
         #   -----         -----         -----
         #   |   |         |   |         |   |
         #   | L |---      | C |      ---| R |
@@ -75,9 +44,18 @@ class TileFactoryMahjong(object):
         #   -----X)|  or  -----  or  |(X-----
         #      |   |      |   |      |   |
         #      -----      -----      -----
+        # Side neighbours' depiction:
+        #   -----                  -----
+        #   |   |                  |   |
+        #   | L | -----      ----- | R |
+        #   |   | |   |      |   | |   |
+        #   ----- |(X)|  or  |(X)| -----
+        #         |   |      |   |
+        #         -----      -----
         rowUp = pos[1] - 1
         posUpper = "{0} {1} {2}".format(depth, rowUp, column)
-        # Top neighbour in the lower row.
+        # Lower row neighbour.
+        # Top neighbours' depiction:
         #      -----      -----      -----
         #      |   |      |   |      |   |
         #   -----X)|  or  -----  or  |(X-----
@@ -85,6 +63,14 @@ class TileFactoryMahjong(object):
         #   | L |---      | C |      ---| R |
         #   |   |         |   |         |   |
         #   -----         -----         -----
+        # Side neighbours' depiction:
+        #         -----      -----
+        #         |   |      |   |
+        #   ----- |(X)|  or  |(X)| -----
+        #   |   | |   |      |   | |   |
+        #   | L | -----      ----- | R |
+        #   |   |                  |   |
+        #   -----                  -----
         rowDown = pos[1] + 1
         posLower = "{0} {1} {2}".format(depth, rowDown, column)
         if ((posDirectly in self.positions) or
@@ -105,15 +91,13 @@ class TileFactoryMahjong(object):
         for item in vpos:
             ipos.append(int(item))
         # Tile is unselectable, if it has neighbours at both sides at once.
-        if (self.hasLeftRightNeighbour(ipos, True) and
-            self.hasLeftRightNeighbour(ipos, False)):
-            print "SIDES"
+        if (self.hasNeighbour(ipos, 0, -2) and
+            self.hasNeighbour(ipos, 0, 2)):
             return ["0"]
-        # Tile is unselectable, if it has neighbour at the top.
-        if (self.hasTopNeighbour(ipos, -1) or
-            self.hasTopNeighbour(ipos, 0) or
-            self.hasTopNeighbour(ipos, 1)):
-            print "TOP"
+        # Tile is unselectable, if it has at least one neighbour at the top.
+        if (self.hasNeighbour(ipos, 1, -1) or
+            self.hasNeighbour(ipos, 1, 0) or
+            self.hasNeighbour(ipos, 1, 1)):
             return ["0"]
         # It's free otherwise.
         return ["1"]
