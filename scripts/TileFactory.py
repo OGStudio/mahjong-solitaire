@@ -10,15 +10,51 @@ TILE_FACTORY_ID_MATERIAL_SEL = "tile0{0}_selected"
 # FEATURE: Tile selection index depiction.
 TILE_FACTORY_ID_MATERIAL_BLK = "tile0{0}_unavailable"
 
+# FEATURE: Tile matching.
+class TileFactoryMatching(object):
+    def __init__(self, client):
+        self.c = client
+        self.c.listen("node...selected", "1", self.onSelection)
+        self.lastTileID = None
+        self.lastTile = None
+    def __del__(self):
+        self.c = None
+    def tileID(self, tileName):
+        # TODO: use 'tile..id' call.
+        self.c.setConst("TILE", tileName)
+        # Get ID from current material name.
+        mat = self.c.get("node.$SCENE.$TILE.material")[0]
+        sid = mat.split(TILE_FACTORY_ID_MATERIAL)[1]
+        return int(sid[0])
+    def onSelection(self, key, value):
+        print "Matching.onSelection", key, value
+        tileName = key[2]
+        id = self.tileID(tileName)
+        # Tiles match.
+        if (self.lastTile and
+            (self.lastTileID == id)):
+            # Remove them.
+            self.c.set("tileFactory.destroyTile", [self.lastTile,
+                                                   tileName])
+            # TODO: Re-index play field.
+            # Reset buffer.
+            tileName = None
+            id = None
+        self.lastTile = tileName
+        self.lastTileID = id
+
 # FEATURE: Tile selection depiction.
 class TileFactorySelectionDepiction(object):
     def __init__(self, client):
         self.c = client
         self.c.listen("node...selected", "1", self.onSelection)
+        # FEATURE: Tile matching.
+        self.c.listen("tileFactory.destroyTile", None, self.onDestroyTile)
         self.lastSelectedTile = None
     def __del__(self):
         self.c = None
     def currentTileID(self):
+        # TODO: use 'tile..id' call.
         # Get ID from current material name.
         mat = self.c.get("node.$SCENE.$TILE.material")[0]
         sid = mat.split(TILE_FACTORY_ID_MATERIAL)[1]
@@ -31,8 +67,14 @@ class TileFactorySelectionDepiction(object):
         if (state):
             mat = TILE_FACTORY_ID_MATERIAL_SEL.format(id)
         self.c.set("node.$SCENE.$TILE.material", mat)
+    # FEATURE: Tile matching.
+    def onDestroyTile(self, key, value):
+        tileNames = value
+        for tileName in tileNames:
+            if (self.lastSelectedTile == tileName):
+                self.lastSelectedTile = None
+                return
     def onSelection(self, key, value):
-        print "onSelection", key, value
         tileName = key[2]
         # Deselect previous tile.
         if (self.lastSelectedTile):
@@ -154,6 +196,7 @@ class TileFactorySelection(object):
                 self.c.setConst("TILE", tileName)
                 self.c.set("node.$SCENE.$TILE.selectable", val)
                 # FEATURE: Tile selection index depiction.
+                # TODO: use 'tile..id' call.
                 id = self.currentTileID()
                 mat = TILE_FACTORY_ID_MATERIAL + str(id)
                 if (not state):
@@ -236,8 +279,15 @@ class TileFactoryImpl(object):
         self.maxX = max(self.maxX, float(v[0]))
     # FEATURE: Tile identity.
     def tileID(self, key):
+        print "tileID", key
         tileName = key[1]
         return stringToStringList(str(self.ids[tileName]))
+    def setDestroyTile(self, key, value):
+        print "destroy tile", key, value
+        tileNames = value
+        for tileName in tileNames:
+            self.c.setConst("TILE", tileName)
+            self.c.set("node.$SCENE.$TILE.parent", "")
     # FEATURE: Tile identity.
     def setTileID(self, key, value):
         tileName = key[1]
@@ -255,11 +305,14 @@ class TileFactory(object):
         self.selection = TileFactorySelection(self.c)
         # FEATURE: Tile selection depiction.
         self.selectionDepiction = TileFactorySelectionDepiction(self.c)
+        # FEATURE: Tile matching.
+        self.matching = TileFactoryMatching(self.c)
         self.c.setConst("SCENE", sceneName)
         self.c.setConst("PARENT_NODE", nodeName)
         # FEATURE: Field centering.
         self.c.provide("tileFactory.centerTiles", self.impl.setCenterTiles)
         self.c.provide("tileFactory.createTile", None, self.impl.createTile)
+        self.c.provide("tileFactory.destroyTile", self.impl.setDestroyTile)
         self.c.provide("tile..position", self.impl.setTilePosition)
         # FEATURE: Tile identity.
         self.c.provide("tile..id", self.impl.setTileID, self.impl.tileID)
@@ -271,6 +324,8 @@ class TileFactory(object):
         del self.selection
         # FEATURE: Tile selection depiction.
         del self.selectionDepiction
+        # FEATURE: Tile matching.
+        del self.matching
         del self.impl
         del self.c
 
