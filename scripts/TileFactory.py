@@ -58,14 +58,12 @@ class TileFactorySelectionDepiction(object):
         sid = mat.split(TILE_FACTORY_ID_MATERIAL)[1]
         return int(sid[0])
     def markSelected(self, tileName, state):
-        print "markSelected", tileName, state
         self.c.setConst("TILE", tileName)
         id = self.currentTileID()
         # Assign new material.
         mat = TILE_FACTORY_ID_MATERIAL + str(id)
         if (state):
             mat = TILE_FACTORY_ID_MATERIAL_SEL.format(id)
-        print "set node '{0}' material to '{1}'".format(tileName, mat)
         self.c.set("node.$SCENE.$TILE.material", mat)
     def onDestroyTile(self, key, value):
         tileNames = value
@@ -311,11 +309,9 @@ class TileFactoryImpl(object):
         self.maxX = max(self.maxX, float(v[0]))
     # FEATURE: Tile identity.
     def tileID(self, key):
-        print "tileID", key
         tileName = key[1]
         return stringToStringList(str(self.ids[tileName]))
     def setDestroyTile(self, key, value):
-        print "destroy tile", key, value
         tileNames = value
         for tileName in tileNames:
             self.c.setConst("TILE", tileName)

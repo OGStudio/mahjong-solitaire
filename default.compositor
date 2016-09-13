@@ -3,6 +3,27 @@ template
         texture = textureTemplate
 material
     main
+        tileVictoryC
+            diffuse = pipeline/textures/tile_victory_c.png
+            normal = pipeline/textures/tile_n.png
+        tileVictoryI
+            diffuse = pipeline/textures/tile_victory_i.png
+            normal = pipeline/textures/tile_n.png
+        tileVictoryO
+            diffuse = pipeline/textures/tile_victory_o.png
+            normal = pipeline/textures/tile_n.png
+        tileVictoryR
+            diffuse = pipeline/textures/tile_victory_r.png
+            normal = pipeline/textures/tile_n.png
+        tileVictoryT
+            diffuse = pipeline/textures/tile_victory_t.png
+            normal = pipeline/textures/tile_n.png
+        tileVictoryV
+            diffuse = pipeline/textures/tile_victory_v.png
+            normal = pipeline/textures/tile_n.png
+        tileVictoryY
+            diffuse = pipeline/textures/tile_victory_y.png
+            normal = pipeline/textures/tile_n.png
         tileLossS
             diffuse = pipeline/textures/tile_loss_s.png
             normal = pipeline/textures/tile_n.png

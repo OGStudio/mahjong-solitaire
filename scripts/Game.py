@@ -39,7 +39,6 @@ class GameImpl(object):
         return tileName
     # FEATURE: Game over.
     def finish(self, state):
-        print "finish", state
         self.c.setConst("ACTION", GAME_OVER_LOSS)
         if (state):
             self.c.setConst("ACTION", GAME_OVER_VICTORY)
@@ -82,7 +81,6 @@ class GameImpl(object):
         self.c.set("tileFactory.indexTiles", "1")
     # FEATURE: Game stats.
     def onTurnsTiles(self, key, value):
-        print "onTurnsTiles", key, value
         turns = int(value[0])
         tiles = int(value[1])
         # FEATURE: Game over.

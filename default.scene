@@ -57,3 +57,50 @@ node
             parent = loss
             position = 0.300000 0.000000 0.000000
             rotation = 0.000000 0.000000 -90.000000
+        victoryRotation
+            parent = ROOT
+        victory
+            parent = ROOT
+            position = 1.000000 -1.200000 0.570000
+            rotation = 45.000000 0.000000 -90.000000
+        V
+            material = tileVictoryV
+            model = models/tile.osgt
+            parent = victory
+            rotation = 0.000000 0.000000 -90.000000
+        I
+            material = tileVictoryI
+            model = models/tile.osgt
+            parent = victory
+            position = 0.100000 0.000000 0.000000
+            rotation = 0.000000 0.000000 -90.000000
+        C
+            material = tileVictoryC
+            model = models/tile.osgt
+            parent = victory
+            position = 0.200000 0.000000 0.000000
+            rotation = 0.000000 0.000000 -90.000000
+        T
+            material = tileVictoryT
+            model = models/tile.osgt
+            parent = victory
+            position = 0.300000 0.000000 0.000000
+            rotation = 0.000000 0.000000 -90.000000
+        O2
+            material = tileVictoryO
+            model = models/tile.osgt
+            parent = victory
+            position = 0.400000 0.000000 0.000000
+            rotation = 0.000000 0.000000 -90.000000
+        R
+            material = tileVictoryR
+            model = models/tile.osgt
+            parent = victory
+            position = 0.500000 0.000000 0.000000
+            rotation = 0.000000 0.000000 -90.000000
+        Y
+            material = tileVictoryY
+            model = models/tile.osgt
+            parent = victory
+            position = 0.600000 0.000000 0.000000
+            rotation = 0.000000 0.000000 -90.000000
