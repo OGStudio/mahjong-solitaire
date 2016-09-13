@@ -9,7 +9,7 @@ node
         camera
             parent = ROOT
             position = 0.013924 -1.480793 1.395200
-            rotation = 44.799641 0.000000 -0.299790
+            rotation = 45.000000 0.000000 0.000000
             script = scripts/CameraSync.py
         background
             parent = ROOT

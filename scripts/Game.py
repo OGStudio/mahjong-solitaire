@@ -1,11 +1,16 @@
 
 from pymjin2 import *
 
-GAME_RESOLVER_NAME = "GameResolver"
-GAME_LAYOUT_DIR    = "layouts/"
-GAME_LAYOUT_EXT    = "layout"
+# FEATURE: Game over.
+GAME_OVER_CAMERA  = "default.camera"
+GAME_OVER_LOSS    = "rotate.default.rotateToLoss"
+GAME_OVER_VICTORY = "rotate.default.rotateToVictory"
+
+GAME_LAYOUT_DIR     = "layouts/"
+GAME_LAYOUT_EXT     = "layout"
 # FEATURE: Tile identity.
-GAME_TILE_IDS_NB   = 4
+GAME_RESOLVER_NAME  = "GameResolver"
+GAME_TILE_IDS_NB    = 4
 
 class GameImpl(object):
     def __init__(self, c):
@@ -32,6 +37,13 @@ class GameImpl(object):
         val = " ".join(pos)
         self.c.set("tile.$TILE.position", val)
         return tileName
+    # FEATURE: Game over.
+    def finish(self, state):
+        print "finish", state
+        self.c.setConst("ACTION", GAME_OVER_LOSS)
+        if (state):
+            self.c.setConst("ACTION", GAME_OVER_VICTORY)
+        self.c.set("$ACTION.$CAMERA.active", "1")
     # FEATURE: Tile identity.
     def generateTileIDs(self, tiles):
         i = 0
@@ -73,11 +85,14 @@ class GameImpl(object):
         print "onTurnsTiles", key, value
         turns = int(value[0])
         tiles = int(value[1])
+        # FEATURE: Game over.
         if (turns == 0):
+            # Victory.
             if (tiles == 0):
-                print "Victory"
+                self.finish(True)
+            # Loss.
             else:
-                print "Loss"
+                self.finish(False)
     def setLoadLayout(self, key, value):
         fileName = "{0}/{1}.{2}".format(GAME_LAYOUT_DIR,
                                         value[0],
@@ -97,6 +112,8 @@ class Game(object):
         self.c.provide("game.layout", self.impl.setLoadLayout)
         # FEATURE: Game stats.
         self.c.listen("tileFactory.turnsTiles", None, self.impl.onTurnsTiles)
+        # FEATURE: Game over.
+        self.c.setConst("CAMERA", GAME_OVER_CAMERA)
     def __del__(self):
         # Tear down.
         self.c.clear()

@@ -1,0 +1,8 @@
+rotate
+    default
+        rotateToLoss
+            relative = 0
+            point = 1000 45 0 90
+        rotateToVictory
+            relative = 0
+            point = 1000 45 0 -90
