@@ -3,6 +3,15 @@ template
         texture = textureTemplate
 material
     main
+        tileLossS
+            diffuse = pipeline/textures/tile_loss_s.png
+            normal = pipeline/textures/tile_n.png
+        tileLossO
+            diffuse = pipeline/textures/tile_loss_o.png
+            normal = pipeline/textures/tile_n.png
+        tileLossL
+            diffuse = pipeline/textures/tile_loss_l.png
+            normal = pipeline/textures/tile_n.png
         tile
             diffuse = pipeline/textures/tile.png
             normal = pipeline/textures/tile_n.png

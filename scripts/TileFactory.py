@@ -96,6 +96,33 @@ class TileFactorySelection(object):
         self.tiles = {}
     def __del__(self):
         self.c = None
+    # FEATURE: Game stats.
+    def calcTurnsTiles(self):
+        tiles = len(self.tiles)
+        turns = 0
+        # TODO: Calculate real number of turns, not just 'has-turns'.
+        # Group ID -> Number of tiles.
+        ids = {}
+        for tileName in self.tiles:
+            if (self.free(tileName)):
+                self.c.setConst("TILE", tileName)
+                id = self.currentTileID()
+                if (id not in ids):
+                    ids[id] = 0
+                ids[id] = ids[id] + 1
+                # If any group has more than 1 tile,
+                # that's enough for 'has-turns'.
+                ok = False
+                for id in ids:
+                    if (ids[id] > 1):
+                        ok = True
+                        break
+                if (ok):
+                    # Just a flag is enough for now.
+                    turns = 1
+                    break
+        self.c.report("tileFactory.turnsTiles", [str(turns),
+                                                 str(tiles)])
     # WARNING: Duplicates TileFactorySelectionDepiction.
     # TODO: Get rid of it.
     def currentTileID(self):
@@ -189,6 +216,8 @@ class TileFactorySelection(object):
             del self.positions[pos]
         # TODO: re-index their neighbours only, not all tiles.
         self.setIndexTiles(key, value)
+        # FEATURE: Game stats.
+        self.calcTurnsTiles()
     def onPosition(self, key, value):
         tileName = key[1]
         pos = value[0]
@@ -291,6 +320,7 @@ class TileFactoryImpl(object):
         for tileName in tileNames:
             self.c.setConst("TILE", tileName)
             self.c.set("node.$SCENE.$TILE.parent", "")
+            del self.ids[tileName]
     # FEATURE: Tile identity.
     def setTileID(self, key, value):
         tileName = key[1]
@@ -319,6 +349,8 @@ class TileFactory(object):
         self.c.provide("tile..position", self.impl.setTilePosition)
         # FEATURE: Tile identity.
         self.c.provide("tile..id", self.impl.setTileID, self.impl.tileID)
+        # FEATURE: Game stats.
+        self.c.provide("tileFactory.turnsTiles")
     def __del__(self):
         # Tear down.
         self.c.clear()

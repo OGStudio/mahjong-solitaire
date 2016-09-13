@@ -30,3 +30,30 @@ node
         tiles
             parent = tilesRotation
             script = scripts/TileFactory.py
+        loss
+            parent = ROOT
+            position = -1.000000 -1.600000 0.570000
+            rotation = 45.000000 0.000000 90.000000
+        L
+            material = tileLossL
+            model = models/tile.osgt
+            parent = loss
+            rotation = 0.000000 0.000000 -90.000000
+        O
+            material = tileLossO
+            model = models/tile.osgt
+            parent = loss
+            position = 0.100000 0.000000 0.000000
+            rotation = 0.000000 0.000000 -90.000000
+        S1
+            material = tileLossS
+            model = models/tile.osgt
+            parent = loss
+            position = 0.200000 0.000000 0.000000
+            rotation = 0.000000 0.000000 -90.000000
+        S2
+            material = tileLossS
+            model = models/tile.osgt
+            parent = loss
+            position = 0.300000 0.000000 0.000000
+            rotation = 0.000000 0.000000 -90.000000

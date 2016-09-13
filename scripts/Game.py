@@ -68,6 +68,16 @@ class GameImpl(object):
         # Index all tiles to have up-to-date 'selectable' property.
         # FEATURE: Tile selection index.
         self.c.set("tileFactory.indexTiles", "1")
+    # FEATURE: Game stats.
+    def onTurnsTiles(self, key, value):
+        print "onTurnsTiles", key, value
+        turns = int(value[0])
+        tiles = int(value[1])
+        if (turns == 0):
+            if (tiles == 0):
+                print "Victory"
+            else:
+                print "Loss"
     def setLoadLayout(self, key, value):
         fileName = "{0}/{1}.{2}".format(GAME_LAYOUT_DIR,
                                         value[0],
@@ -85,6 +95,8 @@ class Game(object):
         self.impl = GameImpl(self.c)
         self.c.setConst("SCENE", sceneName)
         self.c.provide("game.layout", self.impl.setLoadLayout)
+        # FEATURE: Game stats.
+        self.c.listen("tileFactory.turnsTiles", None, self.impl.onTurnsTiles)
     def __del__(self):
         # Tear down.
         self.c.clear()
